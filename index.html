@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>新手村</title>
+<style>
+.blank_div_20 {width: 100%;height: 20px;}
+.blank_div {width: 100%;height: 50px;}
+.ordi_div {width: 100%;text-align: center}
+.ordi_a {font-size: 18px;}
+
+#intro_div {width: 50%;min-width: 500px;min-width: 700px;margin: auto auto;word-break: break-all;}
+
+#state_ul {width: 50%;min-width: 720px;min-width: 1080px;height: 60px;margin: auto auto;}
+#state_ul li{list-style-type: none; float: left; width: 33%;text-align: center;border: 1px solid lightgray;height: 50px;background-color:lightgrey; line-height: 50px;}
+
+#tab_ul {width: 50%;min-width: 720px;min-width: 1080px;height: 60px;margin: auto auto;}
+.tab_ul_li_up {list-style-type: none; float: left; width: 33%;text-align: center;border: 1px solid lightgray;height: 50px;background-color:lightgrey; line-height: 50px;}
+.tab_ul_li_down {list-style-type: none; float: left; width: 33%;text-align: center;border: 1px solid lightgray;border-bottom: 0; height: 50px;line-height: 50px;}
+#get_div {width: 50%;min-width: 720px;min-width: 1080px;height: 60px;margin: auto auto;display: none;}
+#donate_div {width: 50%;min-width: 720px;min-width: 1080px;height: 60px;margin: auto auto;}
+
+.board_node_div {border-top: 1px solid black;width: 600px;padding-bottom: 20px;margin: auto auto;}
+#board_div {width: 50%;min-width: 720px;min-width: 1080px;height: 60px;margin: auto auto;display: none;}
+
+#get_textarea {width: 60%;height: 150px;font-family: monospace;font-size: 16px;margin: auto auto;}
+#get_submit_button {width: 150px;height: 40px;font-family: monospace;font-size: 16px;margin: auto auto;}
+#get_submit_input {width: 60%;font-family: monospace;font-size: 18px;margin: auto auto;}
+
+#donate_state_a {}
+#donate_nas_count_input {width: 150px;font-size: 18px;}
+#donate_submit_button {width: 150px;height: 40px;font-family: monospace;font-size: 16px;margin: auto auto;}
+</style>
+<script type="text/javascript" src="./dist/nebulas.js"></script>
+<script type="text/javascript" src="./dist/nebPay.js"></script>
+<script type="text/javascript" src="./lib/23fi50.js"> </script>
+<script type="text/javascript" src="./lib/4l430jh.js"> </script>
+<script type="text/javascript" src="./lib/u5903_45g.js"> </script>
+
+<script type="text/javascript">
+    var NebPay = require("nebpay");     //https://github.com/nebulasio/nebPay
+    var nebPay = new NebPay();
+    var HttpRequest = require("nebulas").HttpRequest;
+    var Neb = require("nebulas").Neb;
+    var Account = require("nebulas").Account;
+    var Transaction = require("nebulas").Transaction;
+    var Unit = require("nebulas").Unit;
+    var neb = new Neb();
+    neb.setRequest(new HttpRequest("https://testnet.nebulas.io"));
+    var account, tx, txhash;
+    var tmpAccount = new Account();
+    var netchainID = 1001;
+    var tmpAccount = Account.NewAccount();
+    var j_constract_addr = 'n1tu1Q1v8mTBDrF4Z34nZDJbS4ZPXbjMbmn';
+    var sentGiftCount = 0;
+    function gbid(id){
+        return document.getElementById(id);
+    }
+    function setClassNameById(id, class_name){
+        gbid(id).className = class_name;
+    }
+    function setOnclickFuncById(id, func){
+        gbid(id).onclick = func;
+    }
+    function createExampleAccount() {
+            account = Account.NewAccount();
+           
+          neb.api.getAccountState(account.getAddressString()).then(function (state) {
+              state = state.result || state;
+              alert(state);
+            }).catch(function (err) {
+                console.log("err:",err);
+            });
+    }
+
+    function execTransaction(addr, j_constract, func){
+        neb.api.getAccountState(account.getAddressString()).then(function (state) {
+                state = state.result || state;
+                tx = new Transaction(netchainID, account, addr, 0, parseInt(state.nonce) + 1, '1000000', '200000', j_constract);
+                tx.signTransaction();
+                neb.api.sendRawTransaction(tx.toProtoString()).then(function (resp) {
+                       var txhash = resp.txhash;
+                       func(txhash);
+                    }).catch(function (err) {
+                       alert('error');
+                    });
+            }).catch(function (err) {
+                console.log(err);
+            });
+    }
+
+    function call(addr, j_constract, func, error_func){
+        neb.api.call({
+                        from: tmpAccount.getAddressString(),
+                        to: addr,
+                        value: 0,
+                        nonce: 0,
+                        gasPrice: '1000000',
+                        gasLimit: '200000',
+                        contract: j_constract
+                    })
+                    .then(function (resp) {
+                        func(resp.result);
+                    })
+                    .catch(function (err) {
+                        if(error_func!="undefine")
+                            error_func(err);
+                    });
+    }
+
+    function donate(){
+        dValue = gbid('donate_nas_count_input').value;
+        var to = j_constract_addr;
+        var value = dValue;
+        var callFunction = "donate"
+        var callArgs = "[]"
+
+        serialNumber = nebPay.call(to, value, callFunction, callArgs, {    //使用nebpay的call接口去调用合约,
+            listener: function(resp){ gbid('donate_result_a').innerHTML = "感谢您的捐赠!";}        //设置listener, 处理交易返回信息
+        });
+       
+    }
+
+    function gg_result(resp_result){
+        gbid('get_result_a').innerHTML = "获取成功，交易TxHash: "+resp_result;
+    } 
+
+    function gg_verify_taken(resp_result){
+        if(resp_result == "true"){
+            var argsArray = [];
+            argsArray[0] = gbid('get_submit_input').value;
+            argsArray[1] = gbid('get_textarea').value;
+            var date_s = (new Date()).toString();
+            var index = date_s.indexOf("(");
+            if(index>0)
+                date_s = date_s.substr(0,index);
+            argsArray[2] = date_s;
+            execTransaction(j_constract_addr, getContract("request", getArgsS(argsArray)), gg_result);
+        }
+        else{
+            gbid('get_result_a').innerHTML = resp_result;
+        }
+    }
+
+    function getGift(){
+        var argsArray = [];
+        argsArray[0] = gbid('get_submit_input').value;
+        if(Account.isValidAddress(argsArray[0])==false){
+            gbid('get_result_a').innerHTML = "无效的钱包地址";
+            return;
+        }
+        argsArray[1] = gbid('get_textarea').value;
+        var date_s = (new Date()).toString();
+        var index = date_s.indexOf("(");
+        if(index>0)
+            date_s = date_s.substr(0,index);
+        argsArray[2] = date_s;
+
+        call(j_constract_addr, getContract("request", getArgsS(argsArray)), gg_verify_taken);
+    }
+
+    function getword(index){
+        call(j_constract_addr, getContract("getWords", "[\""+index+"\"]"), function(resp){resp=JSON.parse(resp);gbid('board_container').appendChild(getBoardNodeDiv("No."+index,resp.text,resp.dateTime))});      
+    }
+    function reflesh_getword(){
+        gbid('board_container').innerHTML="";
+        var rl = getRandomList(sentGiftCount);
+        for(var i=0;i<rl.length;i++)
+            getword(rl[i]);
+    }
+
+    function m_init(){
+        initAccount();
+        call(j_constract_addr, getContract("getInfo", "[]"), function(resp){
+            resp=JSON.parse(resp); 
+            gbid('current_sum_coin').innerHTML="当前代币池代币个数（Wei）:"+ parseFloat(resp.currentCoinCount).toExponential(1);
+            gbid('current_gift_coin_count').innerHTML="当前一个礼物代币个数（Wei）:"+parseFloat(resp.giftCoinCount).toExponential(1);
+            gbid('current_gift_send_count').innerHTML="当前送出礼物个数:"+resp.sentGiftCount;
+            sentGiftCount = resp.sentGiftCount;
+            reflesh_getword();
+        },
+        function(err){
+            alert("加载失败，请刷新页面!");
+        }
+    );
+       // call(j_constract_addr, getContract("getCurrentCoinCount", "[]"), function(resp){gbid('current_sum_coin').innerHTML="当前代币池代币:"+resp;});
+        //call(j_constract_addr, getContract("getCurrentGiftCoinCount", "[]"), function(resp){gbid('current_gift_coin_count').innerHTML="当前一个礼物代币:"+resp;});
+       // call(j_constract_addr, getContract("getSentGiftCount", "[]"), function(resp){gbid('current_gift_send_count').innerHTML="当前送出礼物个数:"+resp;});
+    }
+
+    function getBoardNodeDiv(n, words, date){
+        var bnd = document.createElement('div');
+        bnd.className = "board_node_div";
+        var nd = document.createElement('div');
+        nd.className = "ord_div";
+        nd.style.textAlign = "center";
+        nd.innerHTML = n;
+        var wd = document.createElement('div');
+        wd.className = "ord_div";
+        wd.style.textAlign = "center";
+        wd.innerHTML = words;
+        var dd = document.createElement('div');
+        dd.className = "ord_div";
+        dd.style.textAlign = "right";
+        dd.innerHTML = date;
+        bnd.appendChild(nd);
+        bnd.appendChild(wd);
+        bnd.appendChild(dd);
+        return bnd;
+    }
+    function getRandomList(maxN){
+        ran_list = [];
+        if(maxN==0)
+            return ran_list;
+        for(var i=0;i<10;i++){
+            var rand = Math.floor(Math.random()*maxN);
+            var whe_exist = false;
+            for(var j =0;j<ran_list.length;j++)
+                if(ran_list[j] == rand){
+                    whe_exist = true;
+                    break;
+                }
+            if(!whe_exist)
+                ran_list[ran_list.length] = rand;
+        }
+        return ran_list;
+    }
+    window.onload = function(){
+    m_init();
+    setOnclickFuncById('get_button', function(){
+        setClassNameById('get_button', 'tab_ul_li_down');
+        setClassNameById('donate_button', 'tab_ul_li_up');
+        setClassNameById('board_button', 'tab_ul_li_up');
+        gbid('get_div').style.display = 'block';
+        gbid('donate_div').style.display = 'none';
+        gbid('board_div').style.display = 'none';
+        });
+    setOnclickFuncById('donate_button', function(){
+        setClassNameById('donate_button', 'tab_ul_li_down');
+        setClassNameById('get_button', 'tab_ul_li_up');
+        setClassNameById('board_button', 'tab_ul_li_up');
+        gbid('donate_div').style.display = 'block';
+        gbid('get_div').style.display = 'none';
+        gbid('board_div').style.display = 'none';
+        });
+    
+    setOnclickFuncById('board_button', function(){
+        setClassNameById('donate_button', 'tab_ul_li_up');
+        setClassNameById('get_button', 'tab_ul_li_up');
+        setClassNameById('board_button', 'tab_ul_li_down');
+        gbid('donate_div').style.display = 'none';
+        gbid('get_div').style.display = 'none';
+        gbid('board_div').style.display = 'block';
+        });
+    
+
+    //alert(account.getAddressString());
+    };
+</script>
+</head>
+
+<body>
+<div class="ordi_div"><img src="title.png" style="width: 600px;"/></div>
+<div class="blank_div_20"></div>
+<div class="ordi_div">
+    <div id="intro_div">作为新手，想必大家都有一个共同的烦难——没有NAS。这个Dapp的功能很简单，免费提供少量NAS，输入钱包地址即可获取，不需要加微信什么的，即点即得。需要注意的是，每个账号只能获取一次，但是相信大家知道在哪里可以用在此获得的少量NAS去获取更多馈赠（手打笑脸）。单个礼物价值将根据代币池代币总量调整！</div>
+    <div class="blank_div_20"></div>
+    <ul id="state_ul">
+        <li id='current_sum_coin'>当前代币池代币个数（Wei）:loading</li>
+        <li id='current_gift_coin_count'>当前一个礼物代币个数（Wei）:loading</li>
+        <li id='current_gift_send_count'>当前送出礼物个数:loading</li>
+    </ul>
+    <div class="blank_div_20"></div>
+    <ul id="tab_ul">
+        <li id='get_button' class="tab_ul_li_up">礼物</li>
+        <li id='board_button' class="tab_ul_li_up">留言</li>
+        <li id='donate_button' class="tab_ul_li_down">捐赠</li>
+    </ul>
+    <div id='get_div'>
+        <div class="blank_div"></div>
+        <div class="ordi_div"><a>你的地址：</a></div>
+        <div class="ordi_div">
+            <input id="get_submit_input" />
+        </div>
+        <div class="blank_div_20"></div>
+        <div class="ord_div"><a>你的留言：</a></div>
+        <div class="ordi_div" style="vertical-align: top">
+            <textarea id="get_textarea" >XXX到此一游！</textarea>
+        </div>
+        <div class="blank_div"></div>
+        <div class="ordi_div">
+            <button id="get_submit_button" onclick="getGift()">获取馈赠</button>
+        </div>
+        <div class="ordi_div">
+            <a id = "get_result_a"></a>
+        </div>
+    </div>
+    <div id='board_div'>
+            <div class="blank_div_20"></div>
+            <div class="ord_div">
+                <button onclick="reflesh_getword()" style="width: 100px;height: 30px;font-size: 16px;">刷新</button>
+            </div>
+            <div class="blank_div_20"></div>
+            <div class="ord_div" id="board_container">
+    
+            </div>
+    </div>
+    <div id='donate_div'>
+        <div class="blank_div"></div>
+        <div class="ordi_div">
+            <a id="donate_state_a"></a>
+        </div>
+        <div class="blank_div_20"></div>
+        <div class="ordi_div">
+            <a class="ordi_a">您捐赠的NAS个数: </a><input id="donate_nas_count_input" />
+        </div>
+        <div class="blank_div_20"></div>
+        <div class="ordi_div">
+            <button id="donate_submit_button"  onclick="donate()" >捐赠NAS</button>
+        </div>
+        <div class="blank_div_20"></div>
+        <div class="ordi_div">
+            <a id = "donate_result_a">请注意，输入框中数字将是捐赠的NAS个数，不是Wei个数</a>
+        </div>
+    </div>
+    
+</div>
+
+</body>
+
+</html>
